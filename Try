@@ -1,0 +1,28 @@
+var ffmpeg = require('../index');
+var HLSServer = require('hls-server')
+var http = require('http')
+
+var server = http.createServer()
+var hls = new HLSServer(server, {
+  path: '/streams'
+})
+server.listen(8443, () => {
+  console.log('HLSServer ready on http://localhost:8443')
+})
+
+const command = ffmpeg('https://zua4xwedvg6osi1k.azcdn728.net:8443/hls/1feji.m3u8')
+  .outputOptions([
+    '-hls_time 10',
+    '-hls_playlist_type event',
+    `-hls_segment_filename %03d.ts`,
+    '-hls_base_url http://localhost:443/'
+  ])
+  .output('/streams/1feji.m3u8')
+  .on('progress', function (progress) {
+    console.log('Processing: ' + progress.percent + '% done')
+  })
+  .on('end', function (err, stdout, stderr) {
+    console.log('Finished processing!' /*, err, stdout, stderr*/)
+    // console.log(stdout)
+  })
+  .run()
